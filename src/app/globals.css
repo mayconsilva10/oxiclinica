@@ -14,6 +14,9 @@
   --color-ink-muted: #5b6d67; /* Grafite suavizado — textos secundários */
   --color-line: #d6e6de; /* Bordas sutis */
   --color-brand-hover: #3a7666; /* Hover do verde institucional */
+  /* Variações acessíveis (Etapa 6 — contraste WCAG AA >= 4.5:1 em texto normal) */
+  --color-brand-strong: #36705f; /* texto verde e botão primário: 5.8:1 no branco, 5.1:1 no brand-soft */
+  --color-brand-mint: #9dd3be; /* texto verde claro pequeno sobre brand-deep: 6.0:1 */
 
   /* Tipografia (variáveis injetadas por next/font em layout.tsx) */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -33,6 +36,31 @@
 
   /* Movimento */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1); /* aprox. power3.out */
+
+  /* Animações ambientais (CSS, só transform/opacity; desligadas via motion-safe:) */
+  --animate-oxygen-float: oxygen-float 12s ease-in-out infinite;
+  --animate-spin-slow: spin 60s linear infinite;
+  --animate-spin-slower: spin 90s linear infinite reverse;
+
+  @keyframes oxygen-float {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 0, 0);
+    }
+    20% {
+      opacity: 0.7;
+    }
+    50% {
+      transform: translate3d(6px, -18px, 0);
+    }
+    80% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(-4px, -36px, 0);
+    }
+  }
 }
 
 @layer base {
@@ -58,8 +86,81 @@
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-brand;
+    @apply rounded-sm outline-2 outline-offset-3 outline-brand-strong;
   }
+
+  /* Foco visível sobre fundos verde profundo (Hero, header transparente, rodapé, avisos) */
+  .bg-brand-deep :focus-visible,
+  footer :focus-visible,
+  header[data-tone="dark"] :focus-visible {
+    @apply outline-brand-mint;
+  }
+}
+
+/*
+ * Entrada do Hero sem flash: o script inline do layout adiciona .hero-pending em <html>
+ * (somente com JS e movimento permitido); HeroMotion remove a classe ao iniciar o GSAP.
+ * Sem JS, o conteúdo permanece visível.
+ */
+html.hero-pending [data-hero] {
+  opacity: 0;
+}
+
+/*
+ * Etapa 4 — Microinterações (CSS; desligadas com prefers-reduced-motion no bloco ao final)
+ */
+
+/* Linha do tempo: etapa atingida pelo preenchimento (data-reached é aplicado pelo ScrollAnimations) */
+[data-timeline-marker] {
+  transition:
+    background-color 0.4s var(--ease-out-soft),
+    color 0.4s var(--ease-out-soft),
+    box-shadow 0.4s var(--ease-out-soft),
+    scale 0.4s var(--ease-out-soft);
+}
+[data-timeline-step][data-reached] [data-timeline-marker] {
+  background-color: var(--color-brand);
+  color: #fff;
+  box-shadow: 0 0 0 6px rgb(67 135 117 / 0.14);
+  scale: 1.04;
+}
+
+/* Callouts da câmara: realce do marcador ao passar/focar o item da legenda ou o próprio marcador */
+[data-chamber-callout] circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    fill 0.3s var(--ease-out-soft),
+    stroke 0.3s var(--ease-out-soft),
+    scale 0.3s var(--ease-out-soft);
+}
+[data-chamber-callout]:hover circle,
+[data-reveal-section]:has([data-chamber-part="1"]:is(:hover, :focus-within)) [data-chamber-callout="1"] circle,
+[data-reveal-section]:has([data-chamber-part="2"]:is(:hover, :focus-within)) [data-chamber-callout="2"] circle,
+[data-reveal-section]:has([data-chamber-part="3"]:is(:hover, :focus-within)) [data-chamber-callout="3"] circle,
+[data-reveal-section]:has([data-chamber-part="4"]:is(:hover, :focus-within)) [data-chamber-callout="4"] circle,
+[data-reveal-section]:has([data-chamber-part="5"]:is(:hover, :focus-within)) [data-chamber-callout="5"] circle {
+  fill: var(--color-brand);
+  stroke: var(--color-brand-tech);
+  scale: 1.18;
+}
+
+/* Grade técnica discreta do fundo do Hero */
+@utility hero-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 70% at 60% 40%, #000 30%, transparent 80%);
+}
+
+/* Fundo "blueprint" do quadro da ilustração da câmara */
+@utility hero-blueprint {
+  background-image:
+    linear-gradient(to right, rgb(115 185 160 / 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(115 185 160 / 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 50% 45%, rgb(115 185 160 / 0.16), transparent 65%);
+  background-size: 24px 24px, 24px 24px, 100% 100%;
 }
 
 /* Container padrão do site */
@@ -70,6 +171,17 @@
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  /* Partículas, rotações e animações decorativas contínuas desligadas */
+  [class*="animate-"] {
+    animation: none !important;
+  }
+
+  /* Sem deslocamentos/escalas decorativos (cores e sombras continuam sinalizando o estado) */
+  [data-timeline-step][data-reached] [data-timeline-marker],
+  [data-chamber-callout] circle {
+    scale: none !important;
   }
 
   *,

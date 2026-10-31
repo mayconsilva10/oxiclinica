@@ -14,6 +14,8 @@ type SectionHeadingProps = {
   /** id do título, útil para aria-labelledby na <section>. */
   id?: string;
   className?: string;
+  /** Marca o bloco com `data-reveal` (fade-up na rolagem — Etapa 4). */
+  reveal?: boolean;
 };
 
 export function SectionHeading({
@@ -25,10 +27,12 @@ export function SectionHeading({
   as: Tag = "h2",
   id,
   className,
+  reveal = false,
 }: SectionHeadingProps) {
   const isDark = tone === "dark";
   return (
     <div
+      data-reveal={reveal ? "" : undefined}
       className={cn(
         "flex max-w-2xl flex-col gap-4",
         align === "center" && "mx-auto items-center text-center",
@@ -39,7 +43,7 @@ export function SectionHeading({
         <p
           className={cn(
             "inline-flex items-center gap-2 font-display text-xs font-bold uppercase tracking-[0.18em]",
-            isDark ? "text-brand-tech" : "text-brand",
+            isDark ? "text-brand-mint" : "text-brand-strong",
           )}
         >
           <span aria-hidden className="h-px w-6 bg-current" />

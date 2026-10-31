@@ -38,7 +38,7 @@ export function Card<T extends ElementType = "div">({
         "rounded-card p-6 sm:p-8",
         variants[variant],
         interactive &&
-          "transition-[transform,box-shadow,border-color] duration-300 ease-out-soft hover:-translate-y-1 hover:border-brand/30 hover:shadow-lg",
+          "transition-[translate,box-shadow,border-color] duration-300 ease-out-soft motion-safe:hover:-translate-y-1 hover:border-brand/30 hover:shadow-lg focus-within:border-brand/40 focus-within:shadow-lg",
         className,
       )}
       {...rest}

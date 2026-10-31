@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { SITE } from "@/lib/constants";
+import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
+import { SITE, SITE_URL } from "@/lib/constants";
 import "./globals.css";
 
 const inter = Inter({
@@ -17,15 +18,65 @@ const manrope = Manrope({
   display: "swap",
 });
 
+const defaultTitle = `${SITE.name} | Oxigenoterapia hiperbárica em Presidente Prudente/SP`;
+
+/*
+ * SEO (Etapa 6). As imagens de compartilhamento e os ícones vêm das convenções de arquivo
+ * em src/app: opengraph-image.png (+ .alt.txt), icon.png, apple-icon.png e favicon.ico.
+ */
 export const metadata: Metadata = {
-  title: `${SITE.name} | Oxigenoterapia hiperbárica`,
-  description:
-    "Oxiclínica Presidente Prudente — Centro Médico Hiperbárico do Oeste Paulista. Oxigenoterapia hiperbárica com acompanhamento médico especializado.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: defaultTitle, template: `%s | ${SITE.name}` },
+  description: SITE.description,
+  applicationName: SITE.name,
+  keywords: [
+    "oxigenoterapia hiperbárica",
+    "câmara hiperbárica",
+    "medicina hiperbárica",
+    "Presidente Prudente",
+    "Oeste Paulista",
+    "Oxiclínica",
+  ],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "/",
+    siteName: SITE.name,
+    title: defaultTitle,
+    description: SITE.description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: defaultTitle,
+    description: SITE.description,
+  },
+  robots: { index: true, follow: true },
+  formatDetection: { telephone: false, email: false, address: false },
 };
+
+export const viewport: Viewport = {
+  themeColor: "#164a3d",
+  colorScheme: "light",
+};
+
+/*
+ * Executa antes do 1º paint: marca <html> para ocultar os alvos da entrada do Hero
+ * até o GSAP assumir (evita flash). Ignorado com movimento reduzido. Fallback de 3 s
+ * remove a classe caso o JS da página não carregue.
+ */
+const heroPendingScript = `(function(){try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;var d=document.documentElement;d.classList.add("hero-pending");setTimeout(function(){d.classList.remove("hero-pending")},3000)}catch(e){}})();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${manrope.variable} h-full`}>
+    <html
+      lang="pt-BR"
+      className={`${inter.variable} ${manrope.variable} h-full`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: heroPendingScript }} />
+      </head>
       <body className="flex min-h-full flex-col">
         <a
           href="#conteudo"
@@ -38,6 +89,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <Footer />
+        <WhatsAppButton />
       </body>
     </html>
   );

@@ -3,8 +3,22 @@
  * Itens marcados como "confirmar" na seção 9 devem ser validados antes da publicação.
  */
 
+/**
+ * URL pública do site (metadataBase, canonical, sitemap, JSON-LD).
+ * Defina NEXT_PUBLIC_SITE_URL na Vercel com o domínio definitivo (ex.: https://www.dominio-da-clinica.com.br).
+ * Fallbacks: domínio de produção da Vercel (variável automática) e, por fim, localhost.
+ */
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000")
+).replace(/\/+$/, "");
+
 export const SITE = {
   name: "Oxiclínica Presidente Prudente",
+  description:
+    "Oxigenoterapia hiperbárica em Presidente Prudente/SP com indicação e acompanhamento médico. Oxiclínica — Centro Médico Hiperbárico do Oeste Paulista. Credenciada à Unimed Presidente Prudente.",
   shortName: "Oxiclínica",
   legalName: "Centro Médico Hiperbárico do Oeste Paulista Ltda.",
   tagline: "Centro Médico Hiperbárico do Oeste Paulista",
@@ -55,12 +69,30 @@ export const WHATSAPP = {
   url: `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`,
 } as const;
 
-export type OpeningHour = { days: string; hours: string; closed?: boolean };
+export type OpeningHour = {
+  days: string;
+  hours: string;
+  closed?: boolean;
+  /** Dados estruturados (JSON-LD, schema.org/DayOfWeek) — manter coerentes com `hours`. */
+  schema?: { dayOfWeek: readonly string[]; opens: string; closes: string };
+};
 
 export const OPENING_HOURS: readonly OpeningHour[] = [
-  { days: "Segunda a quinta-feira", hours: "07:30 às 18:00" },
-  { days: "Sexta-feira", hours: "07:00 às 18:00" },
-  { days: "Sábado", hours: "08:00 às 11:00" },
+  {
+    days: "Segunda a quinta-feira",
+    hours: "07:30 às 18:00",
+    schema: { dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday"], opens: "07:30", closes: "18:00" },
+  },
+  {
+    days: "Sexta-feira",
+    hours: "07:00 às 18:00",
+    schema: { dayOfWeek: ["Friday"], opens: "07:00", closes: "18:00" },
+  },
+  {
+    days: "Sábado",
+    hours: "08:00 às 11:00",
+    schema: { dayOfWeek: ["Saturday"], opens: "08:00", closes: "11:00" },
+  },
   { days: "Domingo", hours: "Fechado", closed: true },
 ] as const;
 

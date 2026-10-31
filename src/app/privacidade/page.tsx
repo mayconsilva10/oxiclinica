@@ -3,8 +3,9 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ADDRESS, PHONES, SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: `Política de privacidade | ${SITE.name}`,
-  robots: { index: false },
+  title: "Política de privacidade",
+  alternates: { canonical: "/privacidade" },
+  robots: { index: false, follow: true },
 };
 
 /*

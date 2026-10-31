@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Oxiclínica Presidente Prudente — landing page
 
-## Getting Started
+Landing page institucional da Oxiclínica (Centro Médico Hiperbárico do Oeste Paulista).
 
-First, run the development server:
+**Stack:** Next.js 16 (App Router, `cacheComponents`, Turbopack), React 19, TypeScript, Tailwind CSS v4 (tokens em `src/app/globals.css`, sem `tailwind.config`), GSAP 3 + `@gsap/react`, `lucide-react`.
+
+## Requisitos
+
+- Node.js 20 ou superior (testado com 20.20) e npm 10.
+
+## Como rodar
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Produção local:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm run start -- -p 3100   # http://localhost:3100
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Verificações (rode antes de publicar):
 
-## Learn More
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+> Se uma alteração em `globals.css` não aparecer no build, apague `.next/cache/turbopack` e rode o build de novo.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Variáveis de ambiente
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variável | Obrigatória | Uso |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | Recomendada em produção | URL pública **sem barra final** (ex.: `https://www.dominio-da-clinica.com.br`). Usada em `metadataBase`, canonical, Open Graph, `robots.txt`, `sitemap.xml` e JSON-LD. |
 
-## Deploy on Vercel
+Sem ela, o site usa o domínio de produção da Vercel (`VERCEL_PROJECT_PRODUCTION_URL`, definida automaticamente pela Vercel) e, fora da Vercel, `http://localhost:3000`. Localmente, crie um `.env.local` (já ignorado pelo git):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Não há analytics, formulários ou chaves de API (o mapa usa o embed público do Google Maps).
+
+## Onde editar
+
+| O quê | Arquivo |
+|---|---|
+| Dados institucionais (endereço, telefones, WhatsApp, horários, Instagram, convênio, URL do site) | `src/lib/constants.ts` — fonte única; nada está duplicado nos componentes |
+| Seções da página | `src/components/sections/*.tsx` (montadas em `src/app/page.tsx`) |
+| Cores, fontes, espaçamentos | `src/app/globals.css` (`@theme`) |
+| SEO / metadados | `src/app/layout.tsx`, `src/app/robots.ts`, `src/app/sitemap.ts`, `src/components/seo/ClinicJsonLd.tsx` |
+| Ícones e imagem de compartilhamento | `src/app/icon.png`, `apple-icon.png`, `favicon.ico`, `opengraph-image.png` (+ `opengraph-image.alt.txt`) |
+| Logo | `public/images/logo-oxiclinica.png` e `logo-oxiclinica-white.png` (347×141). Para trocar pela versão original em alta resolução, substitua os arquivos mantendo os nomes e ajuste `width`/`height` em `src/components/ui/Logo.tsx`. |
+| Política de privacidade (texto provisório, `noindex`) | `src/app/privacidade/page.tsx` |
+
+Ao alterar horários, atualize também o campo `schema` de cada item de `OPENING_HOURS` (usado no JSON-LD).
+
+## Como trocar a foto do Hero (`HERO_IMAGE`)
+
+Hoje o Hero mostra uma ilustração técnica rotulada como "Ilustração representativa". Quando houver uma foto real da câmara hiperbárica **sem pessoas**:
+
+1. Salve a imagem em `public/images/clinic/` (ex.: `camara-hiperbarica.webp`, de preferência ≥ 1200 px de largura).
+2. Em `src/components/sections/Hero.tsx`, preencha a constante:
+
+   ```ts
+   const HERO_IMAGE: HeroImage | null = {
+     src: "/images/clinic/camara-hiperbarica.webp",
+     alt: "Câmara hiperbárica da Oxiclínica",
+     width: 1200, // dimensões reais do arquivo
+     height: 900,
+   };
+   ```
+
+3. Pronto: o `HeroVisual` passa a usar `next/image` com preload/`fetchPriority="high"` (é o LCP) e a legenda da ilustração some.
+
+## Deploy na Vercel (passo a passo — ainda não executado)
+
+1. Faça commit do projeto e envie para um repositório (GitHub/GitLab/Bitbucket).
+2. Em [vercel.com/new](https://vercel.com/new), importe o repositório. Se o repositório contiver a pasta pai, defina **Root Directory** = `oxiclinica`.
+3. Framework: **Next.js** (detectado automaticamente). Build `next build`, output padrão, Node 20+.
+4. Em **Settings → Environment Variables**, crie `NEXT_PUBLIC_SITE_URL` (Production) com o domínio definitivo.
+5. Clique em **Deploy**. Depois, em **Settings → Domains**, adicione o domínio da clínica e configure o DNS conforme indicado pela Vercel; faça um novo deploy se `NEXT_PUBLIC_SITE_URL` mudar.
+6. Pós-deploy: confira `/robots.txt`, `/sitemap.xml`, o preview de compartilhamento (WhatsApp/Instagram), valide o JSON-LD no [Rich Results Test](https://search.google.com/test/rich-results) e rode o Lighthouse na URL de produção. Opcional: cadastrar o site no Google Search Console e vincular ao Perfil da Empresa no Google.
+
+### Antes de publicar (dependem da clínica)
+
+Veja `../REVISAO-CONTEUDO.md`: validação dos textos médicos pelo responsável técnico, autorização de uso de imagem, confirmação de horários/telefones/convênio/Instagram e texto definitivo da política de privacidade.

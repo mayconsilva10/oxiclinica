@@ -15,17 +15,19 @@ type LogoProps = {
   /** "white" para fundos verde profundo; "color" para fundos claros. */
   variant?: keyof typeof SOURCES;
   className?: string;
-  priority?: boolean;
+  /** Carrega sem lazy-load (logo acima da dobra). Sem preload: a logo não é o LCP. */
+  eager?: boolean;
 };
 
-export function Logo({ variant = "color", className, priority }: LogoProps) {
+export function Logo({ variant = "color", className, eager }: LogoProps) {
   return (
     <Image
       src={SOURCES[variant]}
       alt="Oxiclínica — Centro Médico Hiperbárico do Oeste Paulista"
       width={347}
       height={141}
-      priority={priority}
+      loading={eager ? "eager" : "lazy"}
+      sizes="160px"
       className={cn("h-11 w-auto", className)}
     />
   );

@@ -5,14 +5,16 @@ type Variant = "primary" | "secondary" | "ghost" | "light" | "outline-light";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "group inline-flex items-center justify-center gap-2 rounded-full font-display font-semibold whitespace-nowrap " +
-  "transition-[background-color,color,border-color,box-shadow,transform] duration-300 ease-out-soft " +
-  "hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 " +
+  // Abaixo de sm o texto pode quebrar (evita overflow horizontal em telas de 320 px); min-h mantém a altura.
+  "group inline-flex max-w-full items-center justify-center gap-2 rounded-full text-center font-display font-semibold sm:whitespace-nowrap [&>svg]:shrink-0 " +
+  "transition-[background-color,color,border-color,box-shadow,translate] duration-300 ease-out-soft " +
+  "motion-safe:hover:-translate-y-0.5 motion-safe:active:translate-y-0 hover:shadow-md " +
+  "focus-visible:outline-2 focus-visible:outline-offset-3 " +
   "disabled:pointer-events-none disabled:opacity-50";
 
 const variants: Record<Variant, string> = {
   /** Ação principal sobre fundo claro. */
-  primary: "bg-brand text-white shadow-soft hover:bg-brand-hover focus-visible:outline-brand",
+  primary: "bg-brand-strong text-white shadow-soft hover:bg-brand-deep focus-visible:outline-brand",
   /** Ação secundária sobre fundo claro. */
   secondary:
     "border border-brand/40 bg-white text-brand-deep hover:border-brand hover:bg-brand-soft focus-visible:outline-brand",
@@ -26,9 +28,9 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-10 px-4 text-sm",
-  md: "h-12 px-6 text-[0.9375rem]",
-  lg: "h-14 px-8 text-base",
+  sm: "min-h-10 px-4 py-2 text-sm",
+  md: "min-h-12 px-6 py-2.5 text-[0.9375rem]",
+  lg: "min-h-14 px-8 py-3 text-base",
 };
 
 type CommonProps = {
@@ -59,7 +61,9 @@ export function buttonClasses({
 
 /**
  * Botão do design system. Com `href` renderiza <a> (âncoras, tel:, WhatsApp);
- * sem `href` renderiza <button>. Links externos (http) abrem em nova aba automaticamente.
+ * sem `href` renderiza <button>. Links externos (http) abrem em nova aba automaticamente
+ * (target/rel) e recebem o aviso "(abre em nova aba)" para leitores de tela — exceto quando
+ * um `aria-label` é informado (nesse caso, inclua o aviso no próprio label).
  */
 export function Button(props: ButtonProps) {
   const { variant, size, icon, leadingIcon, className, children, ...rest } = props;
@@ -69,7 +73,7 @@ export function Button(props: ButtonProps) {
       {leadingIcon}
       <span>{children}</span>
       {icon && (
-        <span className="transition-transform duration-300 ease-out-soft group-hover:translate-x-0.5">
+        <span className="transition-[translate] duration-300 ease-out-soft motion-safe:group-hover:translate-x-0.5">
           {icon}
         </span>
       )}
@@ -86,6 +90,7 @@ export function Button(props: ButtonProps) {
         className={classes}
       >
         {content}
+        {isExternal && !anchorProps["aria-label"] && <span className="sr-only"> (abre em nova aba)</span>}
       </a>
     );
   }

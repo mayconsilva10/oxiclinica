@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Menu, MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
@@ -52,12 +53,33 @@ export function Header() {
     if (returnFocus) menuButtonRef.current?.focus();
   }, []);
 
-  // Menu mobile: Esc fecha, trava rolagem do body, foco no primeiro link,
-  // fecha ao passar para o breakpoint desktop.
+  // Menu mobile: Esc fecha (e devolve o foco ao botão), Tab fica preso no header, trava rolagem do body,
+  // foca o primeiro link e fecha ao passar para o breakpoint desktop.
   useEffect(() => {
     if (!menuOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeMenu(true);
+      if (e.key === "Escape") {
+        closeMenu(true);
+        return;
+      }
+      // Mantém o foco dentro do header (botão do menu + painel) enquanto o menu está aberto
+      if (e.key !== "Tab") return;
+      const header = menuButtonRef.current?.closest("header");
+      if (!header) return;
+      const focusables = Array.from(
+        header.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"),
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || !header.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !header.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     const mq = window.matchMedia("(min-width: 1024px)");
     const onMq = () => mq.matches && closeMenu();
@@ -77,6 +99,7 @@ export function Header() {
 
   return (
     <header
+      data-tone={solid ? "light" : "dark"}
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-[background-color,box-shadow,backdrop-filter] duration-500 ease-out-soft",
         solid ? "bg-white/90 shadow-header backdrop-blur-lg" : "bg-transparent",
@@ -88,7 +111,7 @@ export function Header() {
           scrolled ? "h-16" : "h-header",
         )}
       >
-        <a
+        <Link
           href="/#inicio"
           className="relative shrink-0 rounded-md"
           aria-label="Oxiclínica — voltar ao início"
@@ -97,7 +120,7 @@ export function Header() {
           {/* Duas versões sobrepostas para trocar sem piscar */}
           <Logo
             variant="white"
-            priority
+            eager
             className={cn(
               "h-10 transition-opacity duration-500 sm:h-11",
               solid ? "opacity-0" : "opacity-100",
@@ -105,13 +128,12 @@ export function Header() {
           />
           <Logo
             variant="color"
-            priority
             className={cn(
               "absolute inset-0 h-10 transition-opacity duration-500 sm:h-11",
               solid ? "opacity-100" : "opacity-0",
             )}
           />
-        </a>
+        </Link>
 
         <nav aria-label="Navegação principal" className="hidden lg:block">
           <ul className="flex items-center gap-1">
@@ -156,7 +178,8 @@ export function Header() {
             variant={solid ? "primary" : "light"}
             leadingIcon={<MessageCircle aria-hidden className="size-4" />}
             className="hidden sm:inline-flex"
-            aria-label="Fale com nossa equipe pelo WhatsApp (abre em nova aba)"
+            data-cta="whatsapp"
+            aria-label="Fale conosco pelo WhatsApp (abre em nova aba)"
           >
             Fale conosco
           </Button>
@@ -183,7 +206,11 @@ export function Header() {
         id="menu-mobile"
         ref={panelRef}
         hidden={!menuOpen}
-        className="h-[calc(100dvh-4rem)] overflow-y-auto border-t border-line bg-white lg:hidden"
+        className={cn(
+          "overflow-y-auto overscroll-contain border-t border-line bg-white lg:hidden",
+          // Altura = viewport menos a altura atual do header (h-16 rolado / h-header no topo)
+          scrolled ? "h-[calc(100dvh-4rem)]" : "h-[calc(100dvh-5rem)]",
+        )}
       >
         <nav aria-label="Navegação mobile" className="container-site flex flex-col gap-8 py-8">
           <ul className="flex flex-col">
@@ -195,7 +222,7 @@ export function Header() {
                   onClick={() => closeMenu()}
                   className={cn(
                     "flex items-center justify-between py-4 font-display text-xl font-semibold",
-                    activeId === id ? "text-brand" : "text-ink",
+                    activeId === id ? "text-brand-strong" : "text-ink",
                   )}
                 >
                   {label}
@@ -207,6 +234,7 @@ export function Header() {
             href={WHATSAPP.url}
             size="lg"
             leadingIcon={<MessageCircle aria-hidden className="size-5" />}
+            data-cta="whatsapp"
             onClick={() => closeMenu()}
           >
             Fale com nossa equipe
