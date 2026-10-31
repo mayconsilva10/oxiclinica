@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — Oxiclínica (planejamento, seção 2)
+ * Tailwind v4: cada token em @theme gera utilitários (bg-brand, text-ink, font-display, etc.).
+ */
+@theme {
+  /* Paleta */
+  --color-brand: #438775; /* Verde institucional — identidade, botões, destaques */
+  --color-brand-deep: #164a3d; /* Verde profundo — hero e seções de destaque */
+  --color-brand-tech: #73b9a0; /* Verde tecnológico — elementos animados e detalhes */
+  --color-brand-soft: #eaf4ef; /* Verde suave — fundos alternativos */
+  --color-ink: #263a34; /* Grafite — textos e títulos */
+  --color-ink-muted: #5b6d67; /* Grafite suavizado — textos secundários */
+  --color-line: #d6e6de; /* Bordas sutis */
+  --color-brand-hover: #3a7666; /* Hover do verde institucional */
+
+  /* Tipografia (variáveis injetadas por next/font em layout.tsx) */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-manrope), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Espaçamento e layout */
+  --spacing-section: 6rem; /* py-section — mobile */
+  --spacing-section-lg: 8rem; /* lg:py-section-lg — desktop */
+  --spacing-header: 5rem; /* h-header — altura do header expandido */
+  --container-site: 76rem; /* max-w-site */
+
+  /* Raios e sombras */
+  --radius-card: 1.25rem;
+  --radius-media: 1.5rem;
+  --shadow-soft: 0 1px 2px rgb(38 58 52 / 0.04), 0 8px 24px -8px rgb(38 58 52 / 0.12);
+  --shadow-header: 0 1px 0 rgb(38 58 52 / 0.06), 0 6px 20px -10px rgb(38 58 52 / 0.18);
+
+  /* Movimento */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1); /* aprox. power3.out */
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Compensa o header fixo na navegação por âncoras */
+    scroll-padding-top: 4.5rem;
+  }
+
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight text-ink;
+  }
+
+  ::selection {
+    @apply bg-brand-tech/30 text-ink;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand;
+  }
+}
+
+/* Container padrão do site */
+@utility container-site {
+  @apply mx-auto w-full max-w-site px-5 sm:px-8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
